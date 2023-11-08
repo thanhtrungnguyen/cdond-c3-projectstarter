@@ -254,10 +254,10 @@ jobs:
           name: Install environment
           command: |
             # Your code here
-            apk add --update --no-cache tar
-            apk add --update --no-cache gzip
-            apk add --update --no-cache aws-cli
-            apk add --update --no-cache curl
+            sudo apt install -y tar gzip curl
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -qq awscliv2.zip
+            sudo ./aws/install
       # Restore from cache
       - restore_cache:
           keys: [backend-build]
