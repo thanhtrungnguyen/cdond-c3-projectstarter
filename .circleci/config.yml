@@ -246,7 +246,7 @@ jobs:
   run-migrations:
     docker:
       # Docker image here that supports NodeJS
-      - image: python:3.8-alpine3.17
+      - image: circleci/node:20.9.0
     steps:
       # Checkout code from git
       - checkout
@@ -258,8 +258,6 @@ jobs:
             apk add --update --no-cache gzip
             apk add --update --no-cache aws-cli
             apk add --update --no-cache curl
-            apk add --update --no-cache nodejs
-            apk add --update --no-cache npm
       # Restore from cache
       - restore_cache:
           keys: [backend-build]
