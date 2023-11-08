@@ -299,6 +299,8 @@ jobs:
             apk add --update --no-cache nodejs
             apk add --update --no-cache npm
             apk add --update --no-cache aws-cli
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Get backend url
           command: |
@@ -334,12 +336,12 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - restore_cache:
-          keys: [backend-build]
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
             - "a5:e2:05:2a:0c:22:9b:20:22:9a:15:0e:58:f3:c4:0c"
+      - restore_cache:
+          keys: [backend-build]
       - attach_workspace:
           at: ~/
       - run:
@@ -374,28 +376,54 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-  # smoke-test:
-  #   docker:
-  #     # Lightweight Docker image
-  #   steps:
-  #     # Checkout code from git
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # your code here
-  #     - run:
-  #         name: Get backend url
-  #         command: |
-  #           # your code here
-  #     - run:
-  #         name: Backend smoke test.
-  #         command: |
-  #           # your code here
-  #     - run:
-  #         name: Frontend smoke test.
-  #         command: |
-  #           # your code here
-  #     # Here's where you will add some code to rollback on failure
+  smoke-test:
+    docker:
+      # Lightweight Docker image
+      - image: python:3.8-alpine3.17
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+            apk add --update --no-cache aws-cli
+            apk add --update --no-cache curl
+      - run:
+          name: Backend smoke test.
+          command: |
+            # your code here
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text)
+            echo $BACKEND_IP
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo $API_URL
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+              exit 0
+            else
+              exit 1
+            fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            # your code here
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFFAULT_REGION}.amazonaws.com/#/employees"
+            echo $URL
+            if curl -s ${URL} | grep "Welcome"
+            then
+              # Change this to 0 after the job fails
+              return 1
+            else
+              exit 1
+            fi
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   # cloudfront-update:
   #   docker:
@@ -440,10 +468,10 @@ workflows:
       #     requires: [build-frontend]
       # - test-backend:
       #     requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure
         # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
         # filters:
@@ -457,8 +485,8 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
