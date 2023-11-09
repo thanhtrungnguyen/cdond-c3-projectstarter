@@ -17,6 +17,12 @@
   shell: |
     cd /home/ubuntu/backend
     npm install
-    pm2 stop backend || true  # The || true ensures that the playbook does not fail if the process does not exist
+    pm2 stop backend || true
     pm2 delete backend || true
     pm2 start npm --name "backend" -- start
+  register: web_server_output
+
+- name: Output result from 'Run the web server'
+  debug: 
+    var: web_server_output
+
