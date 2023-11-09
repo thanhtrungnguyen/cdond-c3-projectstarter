@@ -345,12 +345,12 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
             - "a5:e2:05:2a:0c:22:9b:20:22:9a:15:0e:58:f3:c4:0c"
-      - restore_cache:
-          keys: [backend-build]
       - attach_workspace:
           at: ~/
       - run:
@@ -379,6 +379,8 @@ jobs:
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
+            cd .circleci/ansible/roles/deploy/files/backend.env
+            cat backend.env
             ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
