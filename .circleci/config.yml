@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@4.12.5
+  slack: circleci/slack@4.1
 
 parameters:
   workflow_id:
@@ -145,6 +145,9 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
   scan-backend:
     docker:
@@ -434,7 +437,7 @@ jobs:
           name: Frontend smoke test.
           command: |
             # your code here
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFFAULT_REGION}.amazonaws.com/#/employees"
             echo $URL
             if curl -s ${URL} | grep "Welcome"
             then
@@ -567,10 +570,11 @@ workflows:
           filters:
             branches:
               only: [master]
-      - configure-prometheus:
-          requires: [deploy-infrastructure]
+      # - configure-prometheus:
+      #     requires: [deploy-infrastructure]
       - configure-infrastructure:
-          requires: [configure-prometheus]
+          # requires: [configure-prometheus]
+          requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
@@ -581,5 +585,5 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      - cleanup:
-          requires: [cloudfront-update, configure-prometheus]
+      # - cleanup:
+      #     requires: [cloudfront-update, configure-prometheus]
