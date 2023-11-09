@@ -355,14 +355,10 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - restore_cache:
-          keys: [backend-build]
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
             - "a5:e2:05:2a:0c:22:9b:20:22:9a:15:0e:58:f3:c4:0c"
-      - attach_workspace:
-          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -374,6 +370,10 @@ jobs:
             apk add --update --no-cache aws-cli
             apk add --update --no-cache ansible
             apk add --update --no-cache curl
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Deploy backend
           command: |
@@ -564,8 +564,8 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
+      - build-frontend
+      - build-backend
       # - test-frontend:
       #     requires: [build-frontend]
       # - test-backend:
@@ -576,6 +576,7 @@ workflows:
       #     requires: [build-frontend]
       - deploy-infrastructure:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [build-frontend, build-backend]
           filters:
             branches:
               only: [master]
