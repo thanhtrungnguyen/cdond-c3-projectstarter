@@ -427,8 +427,8 @@ jobs:
             --output text)
             echo $BACKEND_IP
             export API_URL="http://${BACKEND_IP}:3030"
-            echo $API_URL
-            if curl "${API_URL}/api/status" | grep "ok"
+            echo $API_URL 
+            if curl --connect-timeout 30 ${API_URL}/api/status | grep "ok"
             then
               exit 0
             else
@@ -536,7 +536,6 @@ jobs:
           name: Fetching OldStack Workflow ID
           command: |
             # your code here
-            echo "I temporarily disable these command below, it will be uncommented once pass the review phase"
             # export OldWorkflowID=$(aws cloudformation \
             # list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
             # --no-paginate --output text)
