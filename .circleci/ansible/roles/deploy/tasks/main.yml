@@ -14,10 +14,9 @@
 
 - name: Run the web server
   become: true
-  shell:
-    cmd: |
-      cd /home/ubuntu/backend
-      npm install
-      pm2 stop backend
-      pm2 delete backend
-      pm2 start npm -- start
+  shell: |
+    cd /home/ubuntu/backend
+    npm install
+    pm2 stop backend || true  # The || true ensures that the playbook does not fail if the process does not exist
+    pm2 delete backend || true
+    pm2 start npm --name "backend" -- start
