@@ -15,11 +15,10 @@
 - name: Run the web server
   become: true
   shell: |
-    cd /home/ubuntu/backend
     npm install
-    su - ubuntu -c 'pm2 stop backend || true'  # Runs PM2 stop as 'ubuntu' user
-    su - ubuntu -c 'pm2 delete backend || true'  # Runs PM2 delete as 'ubuntu' user
-    su - ubuntu -c 'pm2 start npm --name "backend" -- start'  # Starts PM2 as 'ubuntu' user
+    su - ubuntu -c 'cd /home/ubuntu/backend && pm2 stop backend || true'  # Runs PM2 stop as 'ubuntu' user
+    su - ubuntu -c 'cd /home/ubuntu/backend && pm2 delete backend || true'  # Runs PM2 delete as 'ubuntu' user
+    su - ubuntu -c 'cd /home/ubuntu/backend && pm2 start npm --name "backend" -- start'  # Starts PM2 as 'ubuntu' user
   register: web_server_output
 
 - name: Output result from 'Run the web server'
